@@ -17,7 +17,6 @@ public class FadingMusicInstance extends AbstractTickableSoundInstance {
     private int fadeOutTicksRemaining;
 
     public FadingMusicInstance(ResourceLocation location, float volume, float pitch, int fadeDurationTicks) {
-        // ИСПРАВЛЕНИЕ 1: Оборачиваем ResourceLocation в SoundEvent
         super(SoundEvent.createVariableRangeEvent(location), SoundSource.MUSIC, SoundInstance.createUnseededRandom());
 
         this.initialVolume = volume;
@@ -38,7 +37,6 @@ public class FadingMusicInstance extends AbstractTickableSoundInstance {
             this.isFadingOut = true;
             this.fadeOutDurationTicks = durationTicks;
             this.fadeOutTicksRemaining = durationTicks;
-            // Громкость уже установлена, начинаем отсчет
         }
     }
 
@@ -54,18 +52,14 @@ public class FadingMusicInstance extends AbstractTickableSoundInstance {
 
                 float progress = (float) this.fadeOutTicksRemaining / this.fadeOutDurationTicks;
 
-                // Плавно меняем громкость
                 this.volume = this.initialVolume * Mth.clamp(progress, 0.0F, 1.0F);
 
             } else {
-                // ИСПРАВЛЕНИЕ 2: Просто вызываем метод остановки (он final в родителе)
                 this.stop();
             }
         }
         this.pitch = this.initialPitch;
     }
-
-    // Метод stop() удален, так как он final и его нельзя переопределять.
 
     @Override
     public float getVolume() {

@@ -190,10 +190,6 @@ public class ClientMusicManager {
                 playMusicByKey(targetSoundEventKey);
                 currentMusicSoundEventKey = targetSoundEventKey;
             }
-
-            // If we just initiated a fade-out, currentMusicInstance is null.
-            // We must wait until the next tick for the fade-out to complete/progress.
-            return;
         }
 
         // 3. No change required (Keys match)
@@ -218,7 +214,6 @@ public class ClientMusicManager {
             ResourceLocation soundEventRl = ResourceLocation.fromNamespaceAndPath(Music_Player.MOD_ID, soundEventKey);
 
             if (currentMusicInstance != null) {
-                // Это должно быть обработано в updateMusic/stopMusic, но на всякий случай
                 Minecraft.getInstance().getSoundManager().stop(currentMusicInstance);
             }
 
@@ -250,7 +245,6 @@ public class ClientMusicManager {
             } else {
                 // Soft stop (Fade out)
                 if (!instanceToStop.isFadingOut()) {
-                    // Очищаем ссылки до начала фейда, чтобы updateMusic мог запустить новый трек
                     currentMusicInstance = null;
                     currentMusicSoundEventKey = null;
 
@@ -269,17 +263,12 @@ public class ClientMusicManager {
         }
     }
 
-    /**
-     * Определяет лучший целевой трек, используя логику "липкости" (stickiness)
-     * для предотвращения частой смены равнозначных треков.
-     */
     @Nullable
     private static MusicDefinition findBestMatch(List<MusicDefinition> definitions, MusicConditionEvaluator.CurrentContext context) {
 
         final String playingKey = currentMusicSoundEventKey;
         MusicDefinition currentPlayingDefinition = null;
 
-        // 1. Находим наивысший приоритет (bestPriority) и текущий играющий трек
         int bestPriority = Integer.MIN_VALUE;
         for (MusicDefinition definition : definitions) {
             if (definition.isValid() && MusicConditionEvaluator.doesDefinitionMatch(definition, context)) {
@@ -295,17 +284,13 @@ public class ClientMusicManager {
         }
 
         if (bestPriority == Integer.MIN_VALUE) {
-            return null; // Нет подходящих треков
+            return null;
         }
 
-        // 2. ЛОГИКА "ЛИПКОСТИ": Остаемся на текущем треке, если его приоритет равен наивысшему
-        // Это предотвращает случайный выбор, если текущий трек все еще актуален.
         if (currentPlayingDefinition != null && currentPlayingDefinition.getPriority() == bestPriority) {
-            // Текущий трек - лучший или один из лучших. Остаемся на нем.
             return currentPlayingDefinition;
         }
 
-        // 3. Собираем всех кандидатов с наивысшим приоритетом
         List<MusicDefinition> candidates = new ArrayList<>();
         for (MusicDefinition definition : definitions) {
             if (definition.isValid()
@@ -315,13 +300,11 @@ public class ClientMusicManager {
             }
         }
 
-        // 4. Выбираем случайным образом из группы кандидатов
         if (candidates.isEmpty()) {
             return null;
         } else if (candidates.size() == 1) {
-            return candidates.get(0); // Один кандидат
+            return candidates.get(0);
         } else {
-            // Случайный выбор из группы равнозначных (только если нет "липкого" трека)
             int randomIndex = RANDOM.nextInt(candidates.size());
             return candidates.get(randomIndex);
         }
