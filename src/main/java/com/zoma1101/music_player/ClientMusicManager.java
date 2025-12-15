@@ -158,7 +158,7 @@ public class ClientMusicManager {
         MusicConditionEvaluator.CurrentContext context = MusicConditionEvaluator.getCurrentContext(player, mc.level, mc.screen);
         List<MusicDefinition> definitions = Music_Player.soundPackManager.getActiveMusicDefinitionsSorted();
 
-        // НОВЫЙ МЕТОД: Применяет логику "липкости" (sticky logic)
+        // sticky logic
         MusicDefinition bestMatch = findBestMatch(definitions, context);
 
         String targetSoundEventKey = null;
